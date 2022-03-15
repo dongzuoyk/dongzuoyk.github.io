@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="AutoML,AutoDL," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="摘要近几年，深度学习在许多任务上取得显著进步，如图像识别、语音识别和机器翻译。一个重要方面是新颖的神经网络结构，目前使用的架构大多是由人类专家手动开发，这是一个耗时且容易出错的过程。因此，人们对自动神经结构搜索方法越来越感兴趣。文章对这一领域的现有工作进行了综述，并对搜索空间、搜索策略和性能评估方法三个维度进行分类概述。 关键词：神经结构搜索、AutoML、AutoDL、搜索空间设计、搜索策略、">
+<meta property="og:type" content="article">
+<meta property="og:title" content="神经架构搜索：综述">
+<meta property="og:url" content="https://dongzuoyk.github.io/2020/09/26/paper-1/index.html">
+<meta property="og:site_name" content="Meditation Room">
+<meta property="og:description" content="摘要近几年，深度学习在许多任务上取得显著进步，如图像识别、语音识别和机器翻译。一个重要方面是新颖的神经网络结构，目前使用的架构大多是由人类专家手动开发，这是一个耗时且容易出错的过程。因此，人们对自动神经结构搜索方法越来越感兴趣。文章对这一领域的现有工作进行了综述，并对搜索空间、搜索策略和性能评估方法三个维度进行分类概述。 关键词：神经结构搜索、AutoML、AutoDL、搜索空间设计、搜索策略、">
+<meta property="og:locale">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/09/26/paper-1/image-1.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/09/26/paper-1/image-2.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/09/26/paper-1/image-3.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/09/26/paper-1/image-4.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/09/26/paper-1/image-5.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/09/26/paper-1/image-6.png">
+<meta property="article:published_time" content="2020-09-26T10:53:28.000Z">
+<meta property="article:modified_time" content="2022-03-15T12:13:25.691Z">
+<meta property="article:author" content="dongzuoyk">
+<meta property="article:tag" content="AutoML">
+<meta property="article:tag" content="AutoDL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dongzuoyk.github.io/2020/09/26/paper-1/image-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://dongzuoyk.github.io/2020/09/26/paper-1/"/>
+
+
+
+
+
+  <title>神经架构搜索：综述 | Meditation Room</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Meditation Room</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://dongzuoyk.github.io/2020/09/26/paper-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Meditation Room">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">神经架构搜索：综述</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-09-26T18:53:28+08:00">
+                2020-09-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index">
+                    <span itemprop="name">论文学习</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="/2020/09/26/paper-1/image-1.png" alt="image-20220315195628071"></p>
+<h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>近几年，深度学习在许多任务上取得显著进步，如图像识别、语音识别和机器翻译。一个重要方面是新颖的神经网络结构，目前使用的架构大多是由人类专家手动开发，这是一个耗时且容易出错的过程。因此，人们对自动神经结构搜索方法越来越感兴趣。文章对这一领域的现有工作进行了综述，并对搜索空间、搜索策略和性能评估方法三个维度进行分类概述。</p>
+<p>关键词：神经结构搜索、AutoML、AutoDL、搜索空间设计、搜索策略、性能评估方法</p>
+<span id="more"></span>
+
+<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p><img src="/2020/09/26/paper-1/image-2.png" alt="img"></p>
+<p>图1：神经架构搜索方法。搜索策略从预定义的搜索空间A中选择体系结构a。该体系结构被传递给性能估计策略，该策略将a的估计性能返回给搜索策略。</p>
+<p><strong>搜索空间。</strong>搜索空间定义了可以表示哪些结构。结合有关任务的体系结构的先验知识，可以减小搜索空间的大虽然NAS已经取得了令人印象深刻的性能，但是到目前为止，它还没有深入了解为什么特定的体系结构能够很好地工作，以及独立运行中派生的体系结构有多相似。识别常见的母题，提供一个理解为什么这些母题是重要的高性能，并调查这些母题是否适用于不同的问题是可取的。</p>
+<p>小并简化搜索。然而，这也引入了人类的偏见，可能会阻止人们找到超越人类现有知识的新的架构构件。</p>
+<p><strong>搜索策略。</strong>搜索策略说明了如何探索搜索空间。一方面，它包含了经典的勘探与开发权衡，希望快速找到性能良好的架构；而另一方面，应避免过早收敛到次优架构的区域。</p>
+<p><strong>性能评估方法。</strong> NAS的目标通常是找到对看不见的数据实现高预测性能的体系结构。性能评估指的是评估这种性能的过程：最简单的是对数据进行标准的体系结构训练和验证，但这计算成本很大，并且限制了可以探索的体系结构的数量。因此，最近许多研究集中在开发降低这些性能评估成本的方法上。</p>
+<h1 id="搜索空间"><a href="#搜索空间" class="headerlink" title="搜索空间"></a>搜索空间</h1><p>相对简单的搜索空间是链结构神经网络的空间，如图2（左）。链结构神经网络架构可以写为n层的序列，其中第i层Li从i-1层接收输入，其输出用作第i+1层的输入。然后，搜索空间参数化为：①层数n ②每层执行的操作，例如池化、卷积等 ③超参数，例如，滤波器数量、内核大小和跨距等。</p>
+<p><img src="/2020/09/26/paper-1/image-3.png" alt="img"></p>
+<p>图2：不同架构空间。左：链结构空间的元素。右：一个更复杂的搜索空间的元素，具有附加层类型和多个分支和跳过连接。</p>
+<p>最近NAS的研究采用了现代设计元素，这些元素来自于手工构建的架构，如允许构建复杂的多分支网络的跳跃连接，如图2（右）。</p>
+<p>受到由重复元素构成的手工架构的启发，最近研究建议直接搜索这些元素，称为单元或块，而不是整体架构。优化两种不同类型的单元：保持维度不变的正常单元和降低空间维度的缩小单元。最后的架构是以预定义的方式堆叠这些单元来构建的，如图3。与上述搜索空间相比，该搜索空间具有三大优势：</p>
+<ol>
+<li><p>搜索空间的大小减少了，因为单元通常由比整个体系结构少得多的层组成。</p>
+</li>
+<li><p>通过简单地改变模型中使用的单元和过滤器的数量，从单元构建的体系结构可以更容易地传输或适应其他数据集。</p>
+</li>
+<li><p>通过重复构建块来创建体系结构已被证明是一种有用的设计原则，例如在RNNs中重复LSTM块或堆叠残差块。</p>
+</li>
+</ol>
+<p><img src="/2020/09/26/paper-1/image-4.png" alt="img"></p>
+<p>图3：单元搜索空间。左：两个不同的单元，例如正常单元（顶部）和缩小单元（底部）。右：通过顺序堆叠单元构建的架构。</p>
+<p>但当使用基于单元的搜索空间时，出现了一种新的设计选择，即如何选择宏体系结构：应使用多少个单元，它们应如何连接以构建实际模型？原则上，通过简单地用单元替换层，可以任意组合单元。理想情况下，宏观架构和微观架构应该联合优化，而不是仅仅优化微观架构；否则，很容易在找到性能良好的单元后，不得不手动进行宏观架构工程。</p>
+<p>搜索空间的选择在很大程度上决定了优化问题的难度：即使对于基于固定宏结构的单个单元的搜索空间，优化问题仍然是非连续的、相对高维的。</p>
+<h1 id="搜索策略"><a href="#搜索策略" class="headerlink" title="搜索策略"></a>搜索策略</h1><p>许多不同的搜索策略可以用来探索神经结构的空间，包括随机搜索、贝叶斯优化、进化方法、强化学习（RL）和基于梯度的方法。</p>
+<p>将NAS框架化为强化学习问题，神经结构的生成可以看作是智能体的行为，其行为空间与搜索空间相同。代理奖励是基于对训练后的体系结构在看不见的数据上的性能的估计。不同的RL方法在如何表示代理策略以及如何优化策略方面有所不同。</p>
+<p>这些方法的另一种观点是作为顺序决策过程，其中策略按顺序对操作进行采样以生成体系结构，环境的“状态”包含迄今为止采样的操作的摘要，并且奖励仅在最终操作之后获得。然而，由于在这个连续过程中没有与环境发生交互，文章发现将架构采样过程解释为单个动作的连续生成更为直观；这将RL问题简化为无状态的多臂老虎机问题。</p>
+<p>使用RL的另一种选择是使用进化算法优化神经结构的神经进化方法。许多神经进化方法都使用遗传算法来优化神经结构及其权重；然而，当将具有数百万权重的神经结构用于监督学习任务时，基于SGD的权重优化方法优于进化方法。因此，再次使用基于梯度的方法来优化权重，并仅使用进化算法来优化神经结构本身。进化算法进化一组模型，即一组网络；在每一个进化步骤中，至少有一个模型从种群中取样，作为父代，通过对其应用突变来生成后代。在NAS的上下文中，突变是局部操作，例如添加或删除一个层，改变一个层的超参数，添加跳跃连接，以及改变训练超参数。训练后代后，评估其适应度（例如，在验证集上的表现），并将其添加到群体中。</p>
+<p>贝叶斯优化是超参数优化最常用的方法之一，但由于典型的BO工具箱基于高斯过程，关注低维连续优化问题，因此许多研究小组尚未将其应用于NAS。一些工作使用基于树的模型来有效地搜索高维条件空间，并在广泛的问题上实现最先进的性能，同时优化神经结构及其超参数。虽然缺乏全面的比较，但有初步证据表明，这些方法也可以优于进化算法。</p>
+<h1 id="性能评估策略"><a href="#性能评估策略" class="headerlink" title="性能评估策略"></a>性能评估策略</h1><p>搜索策略旨在找到一种神经架构，该架构可以最大化某些性能指标，例如对看不见的数据的准确性。为了指导搜索过程，这些策略需要估计考虑的给定架构A的性能。最简单的方法是对训练数据进行训练，并根据验证数据评估其性能。然而，对每个架构进行从头开始评估的培训经常会为NAS带来数千天的GPU计算需求，这自然会催生出用于加速性能评估的方法。关于现有方法的概述，参见表1。</p>
+<p>性能可以根据完全训练后实际性能的较低可信度来估计。这样的低可信度包括较短的训练时间，对数据子集的训练，在较低分辨率图像上的训练等等。尽管这些低可信度近似值降低了计算成本，但由于性能通常会被低估，因此它们还会在估计中引入偏差。只要搜索策略仅依赖于对不同体系结构进行排名并且相对排名保持稳定，这可能就不会出现问题。然而，最近的结果表明，当廉价近似值与“完整”评估值之间的差异太大时，这种相对排名可能会发生显著变化。</p>
+<p><img src="/2020/09/26/paper-1/image-5.png" alt="img"></p>
+<p>表1：Nas中加速性能评估的不同方法</p>
+<p>评估架构性能的另一种可能方法是基于学习曲线外推，外推初始学习曲线，并终止预测性能较差的曲线，以加快架构搜索过程。预测神经体系结构性能的主要挑战是，为了加快搜索过程，需要在相对较小的评价基础上，在相对较大的搜索空间中进行良好的预测。</p>
+<p>另一种加速性能评估的方法是根据之前训练过的其他体系结构的权重初始化新体系结构的权重。实现这一点的一种方法称为网络变形，允许在保持网络表示的功能不变的情况下修改架构，从而产生只需要几天GPU计算的方法。这允许连续地增加网络的容量并保持高性能，而不需要从头开始培训。几个时期的继续训练也可以利用网络态射所带来的额外容量。这些方法的一个优点是，它们允许搜索空间而不必对架构的大小有一个固有的上限；另一方面，严格的网络形态只能使架构更大，从而可能导致过于复杂的架构。这可以通过使用允许收缩体系结构的近似网络态射来减弱。</p>
+<p>One-Shot Architecture Search（见图4）将所有架构视为超图（One-Shot）模型的不同子图，并在具有相同超图边缘的架构之间共享权重。只需要对一个One-Shot 模型的权重进行训练，然后可以通过从One-Shot 模型中继承训练后的权重来评估体系结构，而无需进行任何单独的训练。这大大加快了体系结构的性能评估，因为不需要训练，同样使方法只需要几个GPU天。One-Shot模型通常会产生很大的偏差，因为它严重低估了最佳体系结构的实际性能；然而，它允许对体系结构进行排名，如果估计的性能与实际性能密切相关，这就足够了。</p>
+<p>不同的One-Shot NAS方法在训练One-Shot模型的方式上有所不同：ENAS学习RNN控制器，该控制器从搜索空间中采样架构，并基于通过增强获得的近似梯度训练一次性模型。DARTS通过将候选操作的混合放在one-shot模型的每个边上，结合搜索空间的连续松弛，优化了一次性模型的所有权重。与在DART中优化实值权重不同，SNAS优化了候选操作的分布。作者使用具体分布和重参数化来放松离散分布并使其可微，从而通过梯度下降实现优化。为了克服将整个一次性模型保存在GPU内存中的必要性，ProxylessNAS将体系结构权重“二进制化”，在每次操作中除了一条边外，还屏蔽了所有的边。然后，通过抽样一些二进制架构并使用BinaryConnect更新相应的概率，可以了解边缘被屏蔽或不被屏蔽的概率。</p>
+<p><img src="/2020/09/26/paper-1/image-6.png" alt="img"></p>
+<p>图4：one-shot架构搜索插图。与对节点应用单个操作（如3x3卷积）不同，one-shot模型（左）为每个节点包含多个候选操作，即上图中的3x3卷积（红arch 色边缘）、5x5卷积（蓝色边缘）和MaxPooling（绿色边缘）。一旦训练one-shot模型，它的权重将在不同的体系结构中共享，这些体系结构只是one-shot模型（右）的子图。</p>
+<p>与这些方法相关的是超网络的元学习，它为新的架构生成权重，因此只需要训练超网络，而不需要训练架构本身。这里的主要区别是权重不是严格共享的，而是由共享超网络生成的。</p>
+<h1 id="未来方向"><a href="#未来方向" class="headerlink" title="未来方向"></a>未来方向</h1><p>现有的研究主要集中在图像分类的NAS上。一方面，这提供了一个具有挑战性的基准，因为大量的人工工程都致力于寻找在该领域性能良好且不易被NAS超越的体系结构。另一方面，利用人工工程中的知识来定义一个合适的搜索空间相对容易。这反过来又使NAS不太可能找到性能大大优于现有体系结构的体系结构，因为所发现的体系结构不能有根本的区别。因此，文章认为通过将NAS应用于较少探索的领域，超越图像分类问题是很重要的。值得注意的是，在图像恢复、语义分割、转移学习、机器翻译、强化学习，以及优化递归神经网络，例如语言或音乐建模。NAS更具前景的应用领域将是生成性对抗性网络或传感器融合。</p>
+<p>另一个有希望的方向是开发针对多任务问题和多目标问题的NAS方法，在这些方法中，将资源效率的度量作为目标，并将其用于未知数据的预测性能。多目标NAS与网络压缩密切相关：两者都旨在找到性能良好但高效的架构。因此，一些压缩方法也可以看作是NAS方法，反之亦然。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    dongzuoyk
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://dongzuoyk.github.io/2020/09/26/paper-1/" title="神经架构搜索：综述">https://dongzuoyk.github.io/2020/09/26/paper-1/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/AutoML/" rel="tag"># AutoML</a>
+          
+            <a href="/tags/AutoDL/" rel="tag"># AutoDL</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/09/11/paper-4/" rel="next" title="搜索MobileNetV3">
+                <i class="fa fa-chevron-left"></i> 搜索MobileNetV3
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/11/01/paper-5/" rel="prev" title="FCOS:一种简单而强大的无锚目标检测器">
+                FCOS:一种简单而强大的无锚目标检测器 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/dongzuoyk" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:bryan97@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2%E7%A9%BA%E9%97%B4"><span class="nav-number">3.</span> <span class="nav-text">搜索空间</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%90%9C%E7%B4%A2%E7%AD%96%E7%95%A5"><span class="nav-number">4.</span> <span class="nav-text">搜索策略</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E8%AF%84%E4%BC%B0%E7%AD%96%E7%95%A5"><span class="nav-number">5.</span> <span class="nav-text">性能评估策略</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%AA%E6%9D%A5%E6%96%B9%E5%90%91"><span class="nav-number">6.</span> <span class="nav-text">未来方向</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">dongzuoyk</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

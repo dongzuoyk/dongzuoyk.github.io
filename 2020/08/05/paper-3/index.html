@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="CNN," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="摘要文章提出了一种新的卷积，称为动态区域感知卷积（DRConv），它可以自动将多个滤波器分配给特征具有相似表示的相应空间区域。通过这种方式，DRConv在建模语义方面优于标准卷积。标准卷积可以增加提取更多视觉元素的通道数量，但会导致高昂的计算成本。DRConv可以将不断增加的通道滤波器转移到空间维度，从而显着提高了卷积的表示能力并保持了平移不变性。它的即插即用属性可以替代任何现有网络中的标准卷积">
+<meta property="og:type" content="article">
+<meta property="og:title" content="动态区域感知卷积">
+<meta property="og:url" content="https://dongzuoyk.github.io/2020/08/05/paper-3/index.html">
+<meta property="og:site_name" content="Meditation Room">
+<meta property="og:description" content="摘要文章提出了一种新的卷积，称为动态区域感知卷积（DRConv），它可以自动将多个滤波器分配给特征具有相似表示的相应空间区域。通过这种方式，DRConv在建模语义方面优于标准卷积。标准卷积可以增加提取更多视觉元素的通道数量，但会导致高昂的计算成本。DRConv可以将不断增加的通道滤波器转移到空间维度，从而显着提高了卷积的表示能力并保持了平移不变性。它的即插即用属性可以替代任何现有网络中的标准卷积">
+<meta property="og:locale">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/08/05/paper-3/clip_image002.jpg">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/08/05/paper-3/clip_image004.jpg">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/08/05/paper-3/clip_image006.jpg">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/08/05/paper-3/clip_image008.jpg">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/08/05/paper-3/clip_image010.jpg">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/08/05/paper-3/clip_image012.jpg">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/08/05/paper-3/clip_image014.jpg">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/08/05/paper-3/clip_image016.jpg">
+<meta property="article:published_time" content="2020-08-05T02:01:45.000Z">
+<meta property="article:modified_time" content="2022-03-15T12:27:39.738Z">
+<meta property="article:author" content="dongzuoyk">
+<meta property="article:tag" content="CNN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dongzuoyk.github.io/2020/08/05/paper-3/clip_image002.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://dongzuoyk.github.io/2020/08/05/paper-3/"/>
+
+
+
+
+
+  <title>动态区域感知卷积 | Meditation Room</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Meditation Room</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://dongzuoyk.github.io/2020/08/05/paper-3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Meditation Room">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">动态区域感知卷积</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-08-05T10:01:45+08:00">
+                2020-08-05
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index">
+                    <span itemprop="name">论文学习</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="/2020/08/05/paper-3/clip_image002.jpg" alt="img"></p>
+<h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>文章提出了一种新的卷积，称为动态区域感知卷积（DRConv），它可以自动将多个滤波器分配给特征具有相似表示的相应空间区域。通过这种方式，DRConv在建模语义方面优于标准卷积。标准卷积可以增加提取更多视觉元素的通道数量，但会导致高昂的计算成本。DRConv可以将不断增加的通道滤波器转移到空间维度，从而显着提高了卷积的表示能力并保持了平移不变性。它的即插即用属性可以替代任何现有网络中的标准卷积。在各种模型（MobileNet系列，ShuffleNetV2等）和任务（分类，面部识别，检测和分割）上评估DRConv，其中在ImageNet分类上，基于DRConv的ShuffleNetV2-0.5X在46M乘加级别上实现了67.1%的最新性能，相对提高了6.3%。</p>
+<span id="more"></span>
+
+<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>当前的主流卷积运算都在空间域以共享滤波器进行，要想捕获更有效的信息，只有重复应用这些操作（例如，使用更多滤波器来增加通道和深度）。这种重复方式有几个局限性。首先，它在计算效率低下。其次，它会导致优化困难。</p>
+<p>与主流卷积不同，局部卷积在空间维度上的每个像素处拥有单独的滤波器，不同地处理每个位置的特征，这比标准卷积更有效地提取空间特征。与标准卷积相比，虽然局部卷积不会增加计算复杂性，但它有两个致命的缺点。一是带来大量与空间大小成比例的参数。另一个问题是局部卷积会破坏平移不变性，而某些任务需要平移不变性（例如，局部卷积不适用于分类任务）。此外，局部卷积仍在不同样本之间共享滤波器，这使其对每个样本的特定特征不敏感。例如，在人脸识别和物体检测任务中存在具有不同姿态的样本。不同样本之间共享的滤波器无法有效提取自定义功能。</p>
+<p>考虑到上述局限性，本文提出了一种新的卷积算法：动态区域感知卷积（DRConv）。DRConv具有强大的语义表示能力，可以完美地保持平移不变性。详细地说，文章设计了一个可学习的guided mask模块，可以根据其各自的特征为每个输入自动生成滤镜的区域共享模式。区域共享模式意味着将空间维度划分为多个区域，并且每个区域内仅共享一个滤波器。基于相应的输入特征，动态生成用于不同样本和不同区域的滤波器。因此，可以根据输入自动调整DRConv的滤波器，从而更有效地专注于其自身的重要特性。</p>
+<p><img src="/2020/08/05/paper-3/clip_image004.jpg" alt="img"></p>
+<p>DRConv的结构如图1所示。文章应用标准卷积从输入生成guided feature。根据guided feature，空间维度分为几个区域。可以看出，guided mask中相同颜色的像素被附着到相同的区域。在每个共享区域中，应用滤波器生成器模块来生成一个滤波器，以执行2D卷积运算。因此需要优化的参数主要集中在滤波器生成器模块中，其数量与空间大小无关。除了显着提高网络性能外，与局部卷积相比，DRConv可以极大地减少参数数量，与标准卷积相比，它几乎不会增加计算复杂性。</p>
+<h1 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h1><h2 id="动态区域感知卷积"><a href="#动态区域感知卷积" class="headerlink" title="动态区域感知卷积"></a>动态区域感知卷积</h2><p>该方法主要分为两个步骤。</p>
+<p>首先，使用可学习的guided mask将特征沿空间维度划分为几个区域。如图1所示，guided mask中相同颜色的像素将附加到相同区域。从图像语义的角度来看，语义相似的特征将分配给相同的区域。</p>
+<p>其次，在每个共享区域中，使用滤波器生成器模块生成定制的滤波器以执行常规2D卷积操作。可以根据输入图像的重要特征自动调整自定义滤波器。</p>
+<p>为了更好地说明该方法，文章主要介绍以下两个模块：可学习的guided mask模块和滤波器生成器模块。可学习的guided mask决定将哪个滤波器分配给哪个区域。滤波器生成器模块生成分配给不同区域的相应滤波器。</p>
+<h2 id="可学习的guided-mask"><a href="#可学习的guided-mask" class="headerlink" title="可学习的guided mask"></a>可学习的guided mask</h2><p>对于具有m个共享区域的DRConv，用标准卷积来生成具有m个通道的guided feature。用F表示guided feature，用M表示guided mask。对于空间域中的每个位置（u，v），如图（a）所示，用argmax（·）输出其中最大值的索引。</p>
+<p><img src="/2020/08/05/paper-3/clip_image006.jpg" alt="img"></p>
+<p> 为了让guided mask可学习，必须得到用来生成guided feature的权值的梯度，但由于argmax(·)的使用导致guided feature的梯度无法计算，所以文章设计了图（a）所示前向传播和反向传播的梯度进行处理。</p>
+<h2 id="动态滤波器：滤波器生成器模块"><a href="#动态滤波器：滤波器生成器模块" class="headerlink" title="动态滤波器：滤波器生成器模块"></a>动态滤波器：滤波器生成器模块</h2><p><img src="/2020/08/05/paper-3/clip_image008.jpg" alt="img"></p>
+<p>整个滤波器生成模块如图（b）所示，首先采用一个average adaptive pooling得到k<em>k</em>C的特征图，然后接一个1x1的卷积，激活函数采用sigmoid，然后采用一个1x1卷积，没有激活函数，groups为m，得到m个k*k的卷积核。</p>
+<h1 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h1><p>通过将其嵌入到包括ShuffleNetV2和MobileNet系列在内的现有流行神经网络中，来证明DRConv的有效性。将DRConv与ImageNet ，MS1M-V2 和COCO上现有的最新技术进行图像分类，面部识别，目标检测和分割方面的比较。</p>
+<h2 id="分类"><a href="#分类" class="headerlink" title="分类"></a>分类</h2><p><img src="/2020/08/05/paper-3/clip_image010.jpg" alt="img"></p>
+<p>为了证明DRConv的有效性，将DRConv与其他技术进行了比较。结果显示在表1中。可以看出，在具有可比的计算成本的情况下，DRConv-ShuffleNetV2在0.5x和1x比例下分别比ShufflNetV2分别实现6.3％和3.6％的增益。DRConv-MobileNetV2比MobileNetV2增长了3.7％，DRConv-MobileNetV1比基线MobileNetV1增长了4.9％。这些实验结果表明，基于DRConv的网络不仅对强大的基线有显着改进，而且与现有技术相比也有了很大的改进，证明了方法的有效性。</p>
+<h2 id="人脸识别"><a href="#人脸识别" class="headerlink" title="人脸识别"></a>人脸识别</h2><p><img src="/2020/08/05/paper-3/clip_image012.jpg" alt="img"></p>
+<p>为了验证DRConv的有效性，将DRConv与几种相关方法进行了比较。基于MobileFaceNet主干，只需用DRConv替换所有瓶颈块中的1×1标准卷积即可。如表2所示，DRConv-MobileFaceNet以4.9％的幅度超出基线，比CondConv提升了1.4％。为了进行进一步的比较，文章选择了局部卷积，该卷积可用于人脸识别，但需要大量参数。在设备内存的限制下，在最后三层应用局部卷积。 DRConv-MobileFaceNet（使用MobileFaceNet中的局部卷积）比Local-MobileFaceNet精度高1.3％，这进一步表明了文章提出的DRConv的优越性。</p>
+<p>由于人脸数据局部统计信息的空间稳定性，DRConv的guided mask模块可以学习清晰的语义模式。如图3所示，在这些guided mask中出现了轮廓分明的面部成分。</p>
+<p><img src="/2020/08/05/paper-3/clip_image014.jpg" alt="img"></p>
+<h2 id="COCO对象检测与分割"><a href="#COCO对象检测与分割" class="headerlink" title="COCO对象检测与分割"></a>COCO对象检测与分割</h2><p>文章进一步评估了DRConv在对象检测和分割方面的有效性。在实验中，使用DetNAS-300M 和Mask R-CNN 框架以及FPN 和4conv1fc作为评估的基础。目标是评估用DRConvs替换DetNAS-300M和Mask R-CNN的FPN中的标准卷积时的效果，以便性能的任何改善都可以归因于DRConv的有效性。另外，将4个可学习区域，8个可学习区域和16个可学习区域设置应用于DRConv，以分析不同数量的区域的影响。</p>
+<p><img src="/2020/08/05/paper-3/clip_image016.jpg" alt="img"></p>
+<p>表3中显示了将DRConv与标准卷积进行比较的结果。从实验结果可以看出，DetNAS-300M中包含8个区域的DRConv算法可以将检测性能显着提高1.8%，Mask R-CNN中包含16个区域的DR-Conv算法在COCO标准AP度量上可以将检测性能提高1.2%，分割性能提高1.1%。DRConv利用guided mask将空间维度分为几组，以便每个滤波器都可以专注于特殊的环境。另一方面，像背景这样的噪声可以很容易地与其他感兴趣的区域分开，并且大多数滤波器可以集中在重要的区域上。对于不同数量的共享区域，结果表明，将空间维度划分为更多区域时，DRConv可以实现更好的性能。区域划分的增多使每个组的上下文更加专用，并且每个滤波器都可以更轻松地进行优化。</p>
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p>本文提出了一种新的卷积算法–动态区域感知卷积算法(DRConv)，该算法成功地保持了平移不变性，完全可以成为现有网络中标准卷积的替代品。本文设计了一个小的可学习模块来预测guided mask来指导滤波器的分配，保证了一个区域内的相似特征可以匹配到相同的滤波器。此外，还设计了滤波器生成器模块，为每个样本生成定制的滤波器，使得不同的输入可以使用自己的专用滤波器。在几个不同任务上的综合实验表明了DRConv的有效性，它在分类、人脸识别、目标检测和分割方面远远优于最先进的和其他优秀的人工设计方法。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    dongzuoyk
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://dongzuoyk.github.io/2020/08/05/paper-3/" title="动态区域感知卷积">https://dongzuoyk.github.io/2020/08/05/paper-3/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/CNN/" rel="tag"># CNN</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/07/14/paper-0/" rel="next" title="将卷积神经网络与图卷积网络链接：在肺动脉-静脉分割中的应用">
+                <i class="fa fa-chevron-left"></i> 将卷积神经网络与图卷积网络链接：在肺动脉-静脉分割中的应用
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/09/11/paper-4/" rel="prev" title="搜索MobileNetV3">
+                搜索MobileNetV3 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/dongzuoyk" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:bryan97@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%B9%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E5%8C%BA%E5%9F%9F%E6%84%9F%E7%9F%A5%E5%8D%B7%E7%A7%AF"><span class="nav-number">3.1.</span> <span class="nav-text">动态区域感知卷积</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%AF%E5%AD%A6%E4%B9%A0%E7%9A%84guided-mask"><span class="nav-number">3.2.</span> <span class="nav-text">可学习的guided mask</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A8%E6%80%81%E6%BB%A4%E6%B3%A2%E5%99%A8%EF%BC%9A%E6%BB%A4%E6%B3%A2%E5%99%A8%E7%94%9F%E6%88%90%E5%99%A8%E6%A8%A1%E5%9D%97"><span class="nav-number">3.3.</span> <span class="nav-text">动态滤波器：滤波器生成器模块</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">4.</span> <span class="nav-text">实验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E7%B1%BB"><span class="nav-number">4.1.</span> <span class="nav-text">分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%BA%E8%84%B8%E8%AF%86%E5%88%AB"><span class="nav-number">4.2.</span> <span class="nav-text">人脸识别</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#COCO%E5%AF%B9%E8%B1%A1%E6%A3%80%E6%B5%8B%E4%B8%8E%E5%88%86%E5%89%B2"><span class="nav-number">4.3.</span> <span class="nav-text">COCO对象检测与分割</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">5.</span> <span class="nav-text">结论</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">dongzuoyk</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

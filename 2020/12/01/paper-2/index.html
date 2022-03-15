@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="图像分割," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="大家好，今天给大家分享的论文是UNET3+:一种用于医学图像分割的全尺寸连接UNET。U-NET最早出自于2015年的医学图像方面的顶会MICCAI，基本上所有的分割问题，都会先用UNET试一下结果，然后再进行各种魔改。在短短几年时间，U-NET论文的引用已达几千次，本次分享的UNET3+也是基于U-NET进行改进的，并且取得了较好的结果。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="UNET3+:一种用于医学图像分割的全尺寸连接UNET">
+<meta property="og:url" content="https://dongzuoyk.github.io/2020/12/01/paper-2/index.html">
+<meta property="og:site_name" content="Meditation Room">
+<meta property="og:description" content="大家好，今天给大家分享的论文是UNET3+:一种用于医学图像分割的全尺寸连接UNET。U-NET最早出自于2015年的医学图像方面的顶会MICCAI，基本上所有的分割问题，都会先用UNET试一下结果，然后再进行各种魔改。在短短几年时间，U-NET论文的引用已达几千次，本次分享的UNET3+也是基于U-NET进行改进的，并且取得了较好的结果。">
+<meta property="og:locale">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/12/01/paper-2/image-1.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/12/01/paper-2/image-2.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/12/01/paper-2/image-3.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/12/01/paper-2/image-4.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/12/01/paper-2/image-5.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/12/01/paper-2/image-6.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/12/01/paper-2/image-7.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/12/01/paper-2/image-8.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/12/01/paper-2/image-9.png">
+<meta property="article:published_time" content="2020-12-01T12:03:40.000Z">
+<meta property="article:modified_time" content="2022-03-15T12:12:01.591Z">
+<meta property="article:author" content="dongzuoyk">
+<meta property="article:tag" content="图像分割">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dongzuoyk.github.io/2020/12/01/paper-2/image-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://dongzuoyk.github.io/2020/12/01/paper-2/"/>
+
+
+
+
+
+  <title>UNET3+:一种用于医学图像分割的全尺寸连接UNET | Meditation Room</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Meditation Room</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://dongzuoyk.github.io/2020/12/01/paper-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Meditation Room">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">UNET3+:一种用于医学图像分割的全尺寸连接UNET</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-12-01T20:03:40+08:00">
+                2020-12-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index">
+                    <span itemprop="name">论文学习</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="/2020/12/01/paper-2/image-1.png" alt="image-20220315200631696"></p>
+<p>大家好，今天给大家分享的论文是UNET3+:一种用于医学图像分割的全尺寸连接UNET。U-NET最早出自于2015年的医学图像方面的顶会MICCAI，基本上所有的分割问题，都会先用UNET试一下结果，然后再进行各种魔改。在短短几年时间，U-NET论文的引用已达几千次，本次分享的UNET3+也是基于U-NET进行改进的，并且取得了较好的结果。</p>
+<span id="more"></span>
+
+<h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>医学图像中器官的自动分割是许多临床应用的关键步骤。近年来，卷积神经网络(convolutional neural networks, CNNs)得到了极大的推动，发展出了多种分割模型，如全卷积神经网络(tional neural networks, FCNs)、UNet、PSPNet和一系列DeepLab版本。特别是基于编码-解码结构的UNet在医学图像分割中得到了广泛的应用。它使用跳跃连接来结合来自解码器的高级语义特征图和来自编码器的相应尺度的低级语义特征图。为了避免UNet中的纯跳跃连接在语义上的不相似特征的融合，UNet++通过引入嵌套的和密集的跳跃连接进一步加强了这些连接，目的是减少编码器和解码器之间的语义差距。尽管取得了良好的性能，但这种方法仍然不能从多尺度中探索足够的信息。</p>
+<p>在许多分割研究中，不同尺度的特征图展示着不同的信息。低层次特征图可以捕捉丰富的空间信息，能够突出器官的边界;而高级语义特征图则体现了器官所在的位置信息。然而，当逐步下采样和上采样时，这些信息可能会逐渐稀释。为了充分利用多尺度特征，本文提出了一种新的基于U形的体系结构，命名为UNet 3+。在该网络结构中，重新设计了编码器和解码器之间的相互连接以及解码器之间的内部连接，以从全尺度捕获细粒度的细节和粗粒度的语义。为了进一步从全尺寸的聚合特征图中学习层次表示法，每个边的输出都与一个混合损失函数相连接，这有助于精确分割，特别是对于在医学图像中出现不同尺度的器官。除了提高精度外，本文还证明了所提出的UNet 3+可以减少网络参数，提高计算效率。</p>
+<p>为了满足医学图像分割的准确性要求，本文进一步研究了如何有效地减少非器官图像的误报。现有的方法通过引入注意力机制或在推理时执行预定义的细化方法来解决这个问题。不同于这些方法，本文提出了一个分类任务来预测输入图像是否有器官，为分割任务提供了指导。</p>
+<h1 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h1><p><img src="/2020/12/01/paper-2/image-2.png" alt="image-20220315200706330"> </p>
+<p>图1 UNet、UNet++和UNet 3+概述。与UNet和UNet++相比，UNet 3+结合了多尺度特征，重新设计了跳跃连接，并利用多尺度的深度监督，UNet 3+使用更少的参数，但可以产生更准确的位置感知和边界增强的分割图。</p>
+<h2 id="Full-scale-Skip-Connections"><a href="#Full-scale-Skip-Connections" class="headerlink" title="Full-scale Skip Connections"></a>Full-scale Skip Connections</h2><p>全尺寸跳跃连接改变了编码器和解码器之间的互连以及解码器子网之间的内连接。无论是连接简单的UNet，还是连接紧密嵌套的UNet++，都缺乏从全尺度探索足够信息的能力。为了弥补UNet和UNet++的缺陷，UNet 3+中的每一个解码器层都融合了来自编码器中的小尺度和同尺度的特征图，以及来自解码器的大尺度的特征图，这些特征图捕获了全尺度下的细粒度语义和粗粒度语义。</p>
+<p><img src="/2020/12/01/paper-2/image-3.png" alt="image-20220315200722384"></p>
+<p>图2构建  解码器层的特征图</p>
+<p>例如，图2说明了如何构造  特征图。与UNet类似，直接接收来自相同尺度编码器层的特征图  。但不同的是，跳跃连接不止一条。其中，上面两条跳跃连接通过不同的最大池化操作将较小尺度编码器层  和  进行池化下采样，以便传递底层的低级语义信息。之所以要池化下采样，是因为要统一特征图的分辨率。从图中可知，  要缩小分辨率4倍，  要缩小分辨率2倍。另外的下面两条跳跃连接则通过双线性插值法对解码器中的  和  进行上采样从而放大特征图的分辨率，从图中可知，  (  )要放大分辨率4倍，  要放大分辨率2倍。统一完特征图之后，还需要统一特征图的数量，减少多余的信息。作者发现采用64个3×3大小的滤波器进行卷积表现效果较好。为了实现浅层精细信息与深层语义信息的无缝融合，本文进一步实现了特征聚合机制，关于特征融合一般有如下两种方法，FCN式的逐点相加或者U-Net式的通道维度拼接融合，本文是后者。这5个尺度融合后，便产生320个相同分辨率的特征图，然后再经过320个3×3大小的滤波器进行卷积 ，最后再经过BN + ReLU得到  。</p>
+<p>下面从公式上表示这种Full-scale Skip Connections，i表示沿着编码方向的第i个下采样层，N表示编码器的个数(文中有5个)，那么特征图  的计算公式如下:</p>
+<p><img src="/2020/12/01/paper-2/image-4.png" alt="image-20220315200746828"></p>
+<p>其中，函数C表示卷积操作，函数H表示特征聚合机制(一个卷积层+一个BN+一个ReLU)，函数D和函数U分别表示上采样和下采样操作，[·]表示通道维度拼接融合。</p>
+<h2 id="Full-scale-Deep-Supervision"><a href="#Full-scale-Deep-Supervision" class="headerlink" title="Full-scale Deep Supervision"></a>Full-scale Deep Supervision</h2><p>为了从全尺寸聚集特征图中学习分层表示，在UNet 3+中进一步采用了全尺寸深度监督。与在UNet++中对生成的全分辨率特征图执行的深度监督相比，本文提出的UNet 3+从每个解码器阶段产生一个侧面输出，由ground truth监督。为了实现深度监督，每个解码器的最后一层被送到一个普通的3 × 3卷积层，然后是双线性上采样和sigmoid函数。</p>
+<p>为了进一步增强器官的边界，本文提出了一个多尺度结构相似度指数损失函数来赋予模糊边界更高的权重。受益于此，UNet 3+将关注模糊边界，区域分布差异越大，MS-SSIM值越高。从分割结果P和ground truth mask G裁剪了两个相应的N×N大小的块，它们可以分别表示为  和  。定义p和g的MSSSIM损失函数为:</p>
+<p><img src="/2020/12/01/paper-2/image-5.png" alt="image-20220315200806107"></p>
+<p>其中，M表示尺度的总数量，   ,  和  分别是p、g的均值和方差，  表示它们的协方差。   定义每个尺度中这两个部分的相对重要性。两个小的常量  和  是避免被0除。在实验中，作者将尺度设置为5(和UNet、UNet++保持一致)。结合focal损失函数, MS-SSIM损失函数和IoU损失函数,本文提出一种基于像素级、块级、图像级的分割算法，该算法能够同时捕获大尺度和精细结构，并具有清晰的边界。混合分割损失被定义为:</p>
+<p><img src="/2020/12/01/paper-2/image-6.png" alt="image-20220315200820786"></p>
+<h2 id="Classification-guided-Module-CGM"><a href="#Classification-guided-Module-CGM" class="headerlink" title="Classification-guided Module (CGM)"></a>Classification-guided Module (CGM)</h2><p>在大多数医学图像分割中，非器官图像出现假阳性是不可避免的。这在很大程度上是由于背景的噪声信息残留在较浅的层中，导致了过度分割的现象。为了实现更精确的分割，本文尝试通过增加一个额外的分类任务来解决这个问题，这个任务是用来预测输入图像是否有器官。</p>
+<p><img src="/2020/12/01/paper-2/image-7.png" alt="image-20220315200836132"></p>
+<p>图3分类引导模块(CGM)说明</p>
+<p>如图3, 在经过dropout、convolution、maxpooling、sigmoid等一系列操作后，从最深处的  得到一个二维张量，每一个都表示有&#x2F;没有器官的概率。受益于丰富的语义信息，分类结果可以分两步进一步指导每个分割侧边输出。首先，利用argmax函数将二维张量转化为{0,1}的单一输出，表示有&#x2F;没有器官。随后，将单分类输出与边分割输出相乘。由于二值化分类任务的简单性，该模块在二值化交叉熵损失函数的优化下，轻松地获得了准确的分类结果，实现了对非器官图像过分割的指导。</p>
+<h1 id="实验结果"><a href="#实验结果" class="headerlink" title="实验结果"></a>实验结果</h1><h2 id="数据集和实现"><a href="#数据集和实现" class="headerlink" title="数据集和实现"></a>数据集和实现</h2><p>卷积神经网络与图卷积网络的连接：在肺动静脉分离中的应用</p>
+<p>该方法在两个器官上得到验证:肝脏和脾脏。用于肝脏分割的数据集来自ISBI国际肝病学会2017挑战赛。它包含131个对比增强的3D腹部CT扫描，其中103个用于训练和28个用于测试。脾脏数据集来自医院，40个用于训练和9个用于测试。</p>
+<h2 id="与UNet和UNet-的比较"><a href="#与UNet和UNet-的比较" class="headerlink" title="与UNet和UNet++的比较"></a>与UNet和UNet++的比较</h2><p>在这一节中，首先将UNet 3+与UNet和UNet+进行比较。每种方法中使用的损失函数是focal loss。</p>
+<p>表格 1从Dice指标的角度比较UNet、UNet++、无深度监督的UNet 3+和UNet 3+。最佳结果以粗体突出显示。</p>
+<p><img src="/2020/12/01/paper-2/image-8.png" alt="image-20220315200904169"></p>
+<p>(一) 定量比较:基于Vgg-16和ResNet-101的主干，表1比较了UNet、UNet++和UNet 3+架构在肝脏和脾脏数据集上的参数数量和分割精度。可以看出，没有深度监督的UNet 3+的性能超过了UNet和UNet+，在两个数据集上执行的两个主干之间平均提高了2.7和1.6个点。考虑到肝脏和脾脏在CT切片中以不同的比例出现，UNet 3+结合全面的深度监督进一步提高了0.4个点。</p>
+<p><img src="/2020/12/01/paper-2/image-9.png" alt="image-20220315200917848"></p>
+<p>图4基于ResNet-101的UNet、UNet++和UNet 3+在肝脏数据集上的定性比较。紫色区域:真阳性(TP)；黄色区域:假阴性(FN)；绿色区域:假阳性。</p>
+<p>(二) 定性比较:图4显示了基于ResNet-101的UNet、UNet++和UNet 3+的分割结果，对肝脏数据集进行了全面的深度监督。可以观察到，本文提出的方法不仅准确定位器官，而且产生连贯的边界。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>本文主要的贡献有三方面:</p>
+<p>(一)设计了UNet 3+来充分利用多尺度特征，引入全尺度的skip connection，该连接结合了来自全尺度特征图的低级语义和高级语义，并且参数更少;</p>
+<p>(二)进行深度监督，从全面的聚合特征图中学习，优化了混合损失函数以增强器官边界;</p>
+<p>(三)提出分类指导模块，通过分类联合训练，减少非器官图像的过度分割</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    dongzuoyk
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://dongzuoyk.github.io/2020/12/01/paper-2/" title="UNET3+:一种用于医学图像分割的全尺寸连接UNET">https://dongzuoyk.github.io/2020/12/01/paper-2/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2/" rel="tag"># 图像分割</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/11/01/paper-5/" rel="next" title="FCOS:一种简单而强大的无锚目标检测器">
+                <i class="fa fa-chevron-left"></i> FCOS:一种简单而强大的无锚目标检测器
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/dongzuoyk" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:bryan97@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%B9%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Full-scale-Skip-Connections"><span class="nav-number">2.1.</span> <span class="nav-text">Full-scale Skip Connections</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Full-scale-Deep-Supervision"><span class="nav-number">2.2.</span> <span class="nav-text">Full-scale Deep Supervision</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Classification-guided-Module-CGM"><span class="nav-number">2.3.</span> <span class="nav-text">Classification-guided Module (CGM)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">3.</span> <span class="nav-text">实验结果</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E9%9B%86%E5%92%8C%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.1.</span> <span class="nav-text">数据集和实现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8EUNet%E5%92%8CUNet-%E7%9A%84%E6%AF%94%E8%BE%83"><span class="nav-number">3.2.</span> <span class="nav-text">与UNet和UNet++的比较</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">dongzuoyk</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

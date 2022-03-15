@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="图像分割,CNN,GCN," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="摘要图卷积网络（GCN）是处理非欧几里得数据的一种新颖而强大的方法，而卷积神经网络（CNN）可以从欧几里得数据中学习特征，例如图像。在这项工作中，本文提出了一种将CNN与GCN相结合的新方法（CNN-GCN），该方法可以同时考虑欧几里得特征和非欧几里得特征，并且可以端到端地进行训练。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="将卷积神经网络与图卷积网络链接：在肺动脉-静脉分割中的应用">
+<meta property="og:url" content="https://dongzuoyk.github.io/2020/07/14/paper-0/index.html">
+<meta property="og:site_name" content="Meditation Room">
+<meta property="og:description" content="摘要图卷积网络（GCN）是处理非欧几里得数据的一种新颖而强大的方法，而卷积神经网络（CNN）可以从欧几里得数据中学习特征，例如图像。在这项工作中，本文提出了一种将CNN与GCN相结合的新方法（CNN-GCN），该方法可以同时考虑欧几里得特征和非欧几里得特征，并且可以端到端地进行训练。">
+<meta property="og:locale">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/07/14/paper-0/image-1.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/07/14/paper-0/image-2.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/07/14/paper-0/image-3.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/07/14/paper-0/image-4.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/07/14/paper-0/image-5.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/07/14/paper-0/image-6.png">
+<meta property="article:published_time" content="2020-07-14T01:18:28.000Z">
+<meta property="article:modified_time" content="2022-03-15T12:13:07.011Z">
+<meta property="article:author" content="dongzuoyk">
+<meta property="article:tag" content="图像分割">
+<meta property="article:tag" content="CNN">
+<meta property="article:tag" content="GCN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dongzuoyk.github.io/2020/07/14/paper-0/image-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://dongzuoyk.github.io/2020/07/14/paper-0/"/>
+
+
+
+
+
+  <title>将卷积神经网络与图卷积网络链接：在肺动脉-静脉分割中的应用 | Meditation Room</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Meditation Room</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://dongzuoyk.github.io/2020/07/14/paper-0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Meditation Room">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">将卷积神经网络与图卷积网络链接：在肺动脉-静脉分割中的应用</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-07-14T09:18:28+08:00">
+                2020-07-14
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index">
+                    <span itemprop="name">论文学习</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="/2020/07/14/paper-0/image-1.png" alt="image-20220315194014722"></p>
+<h1 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h1><p>图卷积网络（GCN）是处理非欧几里得数据的一种新颖而强大的方法，而卷积神经网络（CNN）可以从欧几里得数据中学习特征，例如图像。在这项工作中，本文提出了一种将CNN与GCN相结合的新方法（CNN-GCN），该方法可以同时考虑欧几里得特征和非欧几里得特征，并且可以端到端地进行训练。<span id="more"></span>用此方法将肺血管树分为动脉和静脉（A &#x2F; V）。通过血管分割和骨架化对胸部CT进行预处理，由此构成一个图：将骨架上的体素产生顶点集连接成邻接矩阵。从CT扫描中提取与每个血管垂直的3D像素块，训练CNN-GCN分类器，并将其应用于所构建的血管图上，然后将每个节点标记为动脉或静脉。该方法在一家医院(11名患者，22个肺)的数据上进行了训练和验证，并在另一家医院(10名患者，10个肺)的独立数据上进行了测试。使用基线CNN方法和人类观察者的表现进行比较，CNN-GCN方法获得的中位数准确性在验证（测试）集中为0.773（0.738），而观察者的中位数准确性为0.817，CNN的中位数准确性为0.727（0.693）。总之，本文所提出的CNN-GCN方法将局部图像信息与图形连接性信息相结合，与基线CNN方法相比改善了肺动静脉分割，接近了人类观察者的表现。</p>
+<h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>图卷积网络（GCN）是卷积神经网络（CNN）的一种变体。近年来，有很多研究领域在处理图形数据（非欧几里得数据），例如社交网络，应用化学，计算机视觉等。GCN及其变体在这些方面获得了良好的性能。</p>
+<p>GCN经过训练可以根据特征和连通性预测血管的存在，并使用推理模块生成最终的分割。该方法在视网膜血管和冠状动脉数据集上均取得了很好的结果。但是，该分类器无法进行端到端训练，这可能会产生次优的结果。</p>
+<p>因此在这项工作中，本文提出了一种链接CNN和GCN的新型网络，该网络考虑了局部图像和图的连通性特征，并且可以端到端地训练分类器。为了使具有包含大量3D像素块的节点的图适应GPU内存，本文提出了一种基于批处理而不是整个图的策略，用于CNN-GCN训练和验证。 CNN-GCN方法用于分割肺动静脉，通过血管图构建和3D像素块提取对图像进行预处理，然后由CNN-GCN分类器预测血管图中每个节点的类别，并根据这些节点的分类对动静脉重建。</p>
+<h1 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h1><h2 id="链接CNN与GCN"><a href="#链接CNN与GCN" class="headerlink" title="链接CNN与GCN"></a>链接CNN与GCN</h2><p>GCN可以结合局部和连通性信息，这对于分析血管可能很有用。为了将CNN与GCN结合起来，本文让CNN来学习特征矩阵X，X是从CNN获知的特征图，进行类似于Eq的正常GCN步骤，然后将CNN-GCN分类器链接成函数链，通过反向传播的梯度法直接优化。使用共享的CNN函数处理每个节点的像素块。</p>
+<p>算法1中给出了该方法的伪代码。</p>
+<p><img src="/2020/07/14/paper-0/image-2.png" alt="image-20220315194512828"></p>
+<p>直接训练CNN-GCN要求将整个图形加载到GPU内存中，但随着特征的学习，这在当前的GPU中是不可行的，本文提出一个抽样策略而不是使用整个图形,类似于批处理训练CNN。</p>
+<p>给定图G，随机选择b个具有像素块的节点作为输入batch B，大小为b×S。由于使用图结构，因此还需要这些邻接的像素块。由大小为b×n×S的NB表示，其中n是邻接点数。 batch B和相邻batch NB都使用共享的CNN函数处理，该函数可以由多层组成，例如卷积层，最大池层，激活层等。在每次迭代中，都会重新选择B和NB。</p>
+<p>算法2中介绍了在图上具有批处理策略的GCN层的伪代码。</p>
+<h2 id="在肺动脉-静脉分割中的应用"><a href="#在肺动脉-静脉分割中的应用" class="headerlink" title="在肺动脉-静脉分割中的应用"></a>在肺动脉-静脉分割中的应用</h2><p>通过血管分割方法从胸部CT扫描中提取肺血管树，然后通过骨架化方法进行骨架化。</p>
+<p><img src="/2020/07/14/paper-0/image-3.png" alt="image-20220315194705196"></p>
+<p>图1.肺动脉-静脉分割的方法</p>
+<p>将血管骨架上的所有体素添加为一组节点V，并基于它们的连接构造邻接矩阵A。在这项研究中，仅考虑了一个维度（直接）的邻接点，分别为左右肺构造图G。对于血管骨架上的每个体素，从CT图像中提取出垂直于血管方向且大小为S &#x3D; [32，32，5]的局部像素块pi。基于中心体素的标签，将像素块pi标记为动脉或静脉。按照批处理策略，输入batch B及其邻居NB使用共享函数分别处理特征向量X和NX。将特征向量X和NX插入到GCN层，表示并转换到新的维数。在激活层之后，将以二维形式预测输出。通过连接CNN和GCN，肺动静脉分割的结构如图1所示。基于中心体素的预测，重新构建肺动静脉，其中横截面上的每个体素都标记有相应中心体素的预测。</p>
+<h1 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h1><p>本文收集了中山大学附属医院的东芝Aquilion ONE扫描的11例对比增强CT扫描（SunYs数据集），以及由莱顿大学医学中心的ToshibaAquilion 64扫描的10例对比增强CT扫描（LUMC数据集）。通过滤波器对所有CT扫描进行重新采样，以获得大小为0.625mm3的各向同性体素</p>
+<p><img src="/2020/07/14/paper-0/image-4.png" alt="image-20220315194758400"></p>
+<p>图2.通过链接CNN和GCN层，构建用于肺动脉-静脉分割的CNN-GCN模型。C：卷积层；MP：最大池层；DO：dropout层；FC：全连接层</p>
+<p>肺血管被分割并提供给每个实例。对于SunYs数据集，中山大学附属医院的两名放射科医生将分割的肺血管标记为动脉或静脉，作为初始标签。LUMC的三位专家对初始标签进行了检查和更正。校正后的标签用作基本事实，其中初始标签用于评估观察者的表现。总共从11名患者（共1,041,463个像素块）的22个肺中获得了完整标签的肺动脉静脉，称为SunYs数据集。根据此数据集，训练使用了16个肺（722,013个像素块），验证使用了6个肺（319,450个像素块）。对于LUMC数据集，每例病例的右或左肺血管均由两名专家分别标记，总共准备了10个具有完整肺动静脉标签的肺（504,527个像素块）作为独立的测试集。</p>
+<p>用CNN3D架构做比较。使用Glorot随机初始化CNN-GCN方法中的函数的权重。另外，本文从CNN3D迁移了学习到的权重，以初始化CNN-GCN方法，将其称为“ CNN-GCNt”。使用相同的数据对所有这三种方法进行了训练和验证，并且它们的超参数设置保持不变。</p>
+<p>learning rate&#x3D; 1e-3，batchsize&#x3D; 128，epoch &#x3D; 100。作为基准，观察者的初始标签已根据实际情况进行了验证。准确性被用作比较所有方法和观察者性能的关键指标。</p>
+<h1 id="结果"><a href="#结果" class="headerlink" title="结果"></a>结果</h1><p>把经过训练的分类模型用于预测肺A &#x2F; V的标签，并根据实际情况对结果进行评估。结果如图3所示。使用来自SunYs数据集的验证集，CNN3D，CNNGCN和CNN-GCNt方法分别获得0.727、0.764和0.778的中位数准确性。相比之下，观察者的中位数准确性为0.817。对于独立测试集（LUMC数据集），这三种方法的中位数准确性分别为0.693、0.723和0.738。</p>
+<p>示例A &#x2F; V分割结果如图4所示，显示了验证集的好坏情况。</p>
+<p><img src="/2020/07/14/paper-0/image-5.png" alt="image-20220315194920034"></p>
+<p>图3.训练、验证和测试集中的自动方法和观察者的准确性</p>
+<p><img src="/2020/07/14/paper-0/image-6.png" alt="image-20220315194952373"></p>
+<p>图4.（a）和（b）的2D可视化的结果，其中好结果中CNN3D，CNN-GCN和CNN-GCNt的精度分别为0.759、0.800和0.807；差结果的准确性是分别为0.687、0.710和0.724</p>
+<h1 id="讨论与结论"><a href="#讨论与结论" class="headerlink" title="讨论与结论"></a>讨论与结论</h1><p>通过将CNN与GCN链接起来，本文提出了一种新型的基于深度学习的方法，该方法可以进行端到端的训练。CNN-GCN方法可以同时考虑局部图像和连接信息。提出了一种针对图形的局部批处理策略，以使具有大量节点的图形可在GPU内存中训练。在肺动脉-静脉分割的应用中，CNNGCN方法可以提供一次分割，其效果比CNN方法更好，但与观察者相比，其结果略差。该研究存在一些局限性。在测试数据集中，本文没有独立验证观察者的标记，因此在测试过程中没有提供观察者的表现。将来，可以考虑把校正后的标签添加到测试集中。训练期间可能发生过拟合，可以通过添加正则优化器或更多训练样本来克服。尽管存在这些局限性，本文还是从独立的测试集中获得了令人鼓舞的结果，尤其是考虑到这些结果来自不同的患者群体、CT协议和CT扫描仪。总之，本文所提出的CNN-GCN方法经过端到端的训练，成功地将图像和图形中的信息结合在一起。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    dongzuoyk
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://dongzuoyk.github.io/2020/07/14/paper-0/" title="将卷积神经网络与图卷积网络链接：在肺动脉-静脉分割中的应用">https://dongzuoyk.github.io/2020/07/14/paper-0/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2/" rel="tag"># 图像分割</a>
+          
+            <a href="/tags/CNN/" rel="tag"># CNN</a>
+          
+            <a href="/tags/GCN/" rel="tag"># GCN</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/08/05/paper-3/" rel="prev" title="动态区域感知卷积">
+                动态区域感知卷积 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/dongzuoyk" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:bryan97@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%91%98%E8%A6%81"><span class="nav-number">1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BB%8B%E7%BB%8D"><span class="nav-number">2.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%B9%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%93%BE%E6%8E%A5CNN%E4%B8%8EGCN"><span class="nav-number">3.1.</span> <span class="nav-text">链接CNN与GCN</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9C%A8%E8%82%BA%E5%8A%A8%E8%84%89-%E9%9D%99%E8%84%89%E5%88%86%E5%89%B2%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8"><span class="nav-number">3.2.</span> <span class="nav-text">在肺动脉-静脉分割中的应用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">4.</span> <span class="nav-text">实验</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E6%9E%9C"><span class="nav-number">5.</span> <span class="nav-text">结果</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AE%A8%E8%AE%BA%E4%B8%8E%E7%BB%93%E8%AE%BA"><span class="nav-number">6.</span> <span class="nav-text">讨论与结论</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">dongzuoyk</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

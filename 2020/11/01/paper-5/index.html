@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next pisces use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="目标检测," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="摘要 在计算机视觉中，目标检测是最重要的任务之一，它支撑着一些实例级识别任务和许多下游应用。近年来，单阶段法因其设计简单、性能优越而受到越来越多的关注。本文提出了一种全卷积的单阶段目标检测器(FCOS)，以逐像素预测的方式解决目标检测问题，类似于语义分割等稠密预测问题。本文提出的检测器FCOS不含anchor，也不含proposal。FCOS通过去除预定义的锚框，避免了训练过程中计算IoU分数等与">
+<meta property="og:type" content="article">
+<meta property="og:title" content="FCOS:一种简单而强大的无锚目标检测器">
+<meta property="og:url" content="https://dongzuoyk.github.io/2020/11/01/paper-5/index.html">
+<meta property="og:site_name" content="Meditation Room">
+<meta property="og:description" content="摘要 在计算机视觉中，目标检测是最重要的任务之一，它支撑着一些实例级识别任务和许多下游应用。近年来，单阶段法因其设计简单、性能优越而受到越来越多的关注。本文提出了一种全卷积的单阶段目标检测器(FCOS)，以逐像素预测的方式解决目标检测问题，类似于语义分割等稠密预测问题。本文提出的检测器FCOS不含anchor，也不含proposal。FCOS通过去除预定义的锚框，避免了训练过程中计算IoU分数等与">
+<meta property="og:locale">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-1.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-2.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-3.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-4.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-5.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-6.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-7.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-8.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-9.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-10.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-11.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-12.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-13.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-14.png">
+<meta property="og:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-15.png">
+<meta property="article:published_time" content="2020-11-01T02:48:37.000Z">
+<meta property="article:modified_time" content="2022-03-15T12:55:14.326Z">
+<meta property="article:author" content="dongzuoyk">
+<meta property="article:tag" content="目标检测">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://dongzuoyk.github.io/2020/11/01/paper-5/image-1.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":true,"scrollpercent":true,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="https://dongzuoyk.github.io/2020/11/01/paper-5/"/>
+
+
+
+
+
+  <title>FCOS:一种简单而强大的无锚目标检测器 | Meditation Room</title>
+  
+
+
+
+
+
+
+
+
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Meditation Room</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle"></p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            搜索
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="搜索..." spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://dongzuoyk.github.io/2020/11/01/paper-5/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Meditation Room">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">FCOS:一种简单而强大的无锚目标检测器</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2020-11-01T10:48:37+08:00">
+                2020-11-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BA%E6%96%87%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index">
+                    <span itemprop="name">论文学习</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><img src="/2020/11/01/paper-5/image-1.png" alt="image-20220315203904180">摘要</p>
+<p>在计算机视觉中，目标检测是最重要的任务之一，它支撑着一些实例级识别任务和许多下游应用。近年来，单阶段法因其设计简单、性能优越而受到越来越多的关注。本文提出了一种全卷积的单阶段目标检测器(FCOS)，以逐像素预测的方式解决目标检测问题，类似于语义分割等稠密预测问题。本文提出的检测器FCOS不含anchor，也不含proposal。FCOS通过去除预定义的锚框，避免了训练过程中计算IoU分数等与锚框相关的计算。更重要的是，还避免了所有与锚框相关的超参数，这些超参数通常对最终的检测性能非常敏感。利用唯一的后处理非极大值抑制(NMS)，演示了一个更简单和灵活的检测框架，可提高检测精度。</p>
+<span id="more"></span>
+
+<h1 id="引言"><a href="#引言" class="headerlink" title="引言"></a>引言</h1><p>目标检测需要一种算法来预测图像中每个感兴趣实例的边界框位置和类别标签。在深度学习之前，滑动窗口方法是主要的方法，它对每一个可能的位置进行了详尽的分类，因此需要非常快的特征提取和分类评估。随着深度学习的发展，自从更快的R-CNN的发明以来，检测已经很大程度上转向了全卷积网络(FCNs)的使用。目前所有的主流Faster R-CNN、SSD、YOLOv2、v3等检测器都依赖一套预定义的锚框，长期以来人们认为锚框的使用是现代检测器成功的关键。尽管它们取得了巨大的成功，但需要注意的是基于锚的检测器也有一些缺点:</p>
+<p>如Faster R-CNN和RetinaNet所示，检测性能对大小、长宽比和锚框数量非常敏感。例如，在RetinaNet中，改变这些超参数会在COCO基准上的AP中影响高达4%的性能。因此，需要在基于锚点的检测器中仔细地调优这些超参数。</p>
+<p>即使经过仔细的设计，由于锚框的比例和长宽比是固定的，检测器在处理具有较大形状变化的候选目标时也会遇到困难，特别是对于较小的目标。预定义的锚框还会影响检测器的泛化能力，因为需要在具有不同目标大小或长宽比的新检测任务上对它们进行重新设计。</p>
+<p>为了获得较高的召回率，需要使用基于锚的检测器在输入图像上密集地放置锚框(例如，对于短边为800的图像，特征金字塔网络(FPN)中锚框超过180K)。在训练过程中，大多数锚框被标记为负样本。过多的负样本增加了训练中正样本和负样本的不平衡。</p>
+<p>锚框还涉及复杂的计算，比如使用GT边界框计算IoU分数。</p>
+<p>近年来，FCNs在稠密预测任务中取得了巨大的成功，如语义分割，深度估计，关键点检测和计数。作为高级视觉任务之一，目标检测可能是唯一的全卷积逐像素预测框架的任务，这主要是由于锚框的使用。</p>
+<p>很自然会问一个问题:是否可以用每像素预测的方式来解决目标检测，例如，类似于FCN的语义分割?因此，这些基本的视觉任务可以统一在(几乎)一个单一的框架中。本文在这项工作中表明，答案是肯定的。此外，本文还证明了，基于FCN的检测器比基于锚的检测器更简单，甚至可以获得更好的性能。</p>
+<p><img src="/2020/11/01/paper-5/image-2.png" alt="image-20220315204024283"></p>
+<p>图1如图所示，FCOS的工作原理是通过预测一个4D向量(l, t, r, b)来编码一个边界框在每个前景像素的位置(训练时由GT边界框监督)。右边的图显示，当一个位置位于多个边界框中时，该位置应该返回哪个边界框是不明确的。</p>
+<p>在文献中，一些工作尝试利用逐像素预测FCNs进行目标检测，如DenseBox。具体地说，这些基于fcn的框架直接预测一个4D向量和一个类别在某个特征图层次上的每个空间位置。如图1(左)所示，4D向量描述了一个边界框的四个边到该位置的相对偏移量。这些框架与用于语义分割的FCNs类似，只是每个位置都需要返回一个四维连续向量。</p>
+<p>但是，为了处理不同大小的边框，DenseBox对训练图像进行裁剪和调整，使其达到固定的比例。因此，DenseBox必须对图像金字塔进行检测，这与FCN一次性计算所有卷积的理念相违背。</p>
+<p>此外，更值得注意的是，这些方法主要用于特殊领域的目标检测，如场景文本检测或人脸检测，因此文章认为这些方法在边界框高度重叠的通用目标检测中效果不佳。如图1(右)所示，高度重叠的边界框导致了一个棘手的模糊问题:重叠区域内的像素不清楚回归到哪个边界框。</p>
+<p>在续集中，文章进一步研究这个问题，并说明使用FPN可以很大程度上消除这种模糊性。因此，本文的方法已经可以获得与传统的基于锚的检测器相似甚至更好的检测精度。此外，观察到，本文的方法可能会在远离目标目标中心的位置产生许多低质量的预测边界框。可见，靠近目标边框中心的位置可以做出更可靠的预测。因此，引入了一种新的“中心度”分数来描述某个位置对中心的偏差，如Eq.(3)所定义的，用于降低检测到的低质量边界框的重量，从而有助于抑制NMS中这些低质量检测。中心度得分由与边界框回归分支平行的一个分支(只有一层)进行预测，如图2所示。简单有效的中心分支在计算时间上有显著的提高。</p>
+<p><img src="/2020/11/01/paper-5/image-3.png" alt="image-20220315204041772"></p>
+<p>图2 FCOS的网络体系结构，其中C3，C4和C5表示骨干网的特征图，P3至P7是用于最终预测的特征。 H×W是特征图的高度和宽度。 “ &#x2F; s”（s &#x3D; 8、16，…，128）是特征图在相对于输入图像的下采样率。例如，所有数字都是使用800×1024输入来计算的。</p>
+<p>这个新的检测框架有以下优点：</p>
+<p>检测现在已经与许多其他fcn可溶性任务(如语义分割)统一起来，使重用这些任务中的思想变得更加容易。</p>
+<p>检测成为无proposal和无anchor，大大减少了设计参数的数量。设计参数通常需要启发式调优，为了获得良好的性能，需要使用许多技巧。</p>
+<p>通过去除锚框，完全避免了锚框在训练时的IOU计算和锚框与GT框的匹配等复杂的计算，从而比基于锚框的检测器更快的训练和测试。</p>
+<p>没有花里胡哨，实现了在单阶段检测最好的结果。考虑到它提高了无锚检测器的准确性，本文鼓励社区重新考虑目标检测中锚框的是否有必要。</p>
+<p>由于大大降低了设计复杂性，本文提出的检测器性能优于以前的检测器，如Faster R-CNN， RetinaNet， YOLOv3和SSD。更重要的是，由于其设计简单，FCOS只需稍加修改，就可以很容易地扩展到解决其他实例级识别任务，如实例分割、关键点检测、文本定位、跟踪等。</p>
+<h1 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h1><p>在本节中，首先以逐像素预测的方式重新制定目标检测。其次，展示了如何利用多层次预测来提高召回率和解决边界框重叠造成的模糊。最后，提出了 “中心”分支，它有助于抑制低质量的检测边界框，并大大提高了整体性能。</p>
+<h2 id="全卷积单级目标检测器"><a href="#全卷积单级目标检测器" class="headerlink" title="全卷积单级目标检测器"></a>全卷积单级目标检测器</h2><p>设是CNN的第i层的feature map，s为到该层的总stride。对输入图像的GT边界框定义为  ，其中  。其中  和  表示边界框左上角和右下角的坐标。  是边界框中的目标所属的类。C是类的数量，对于MS-COCO数据集，是80个类。</p>
+<p>对于feature map   上的每个位置(x, y)，其映射到输入图上的位置为  。本文的检测器直接将位置视为训练样本，而不是基于锚的检测器中的锚框，这与FCNs用于语义分割的方法相同。</p>
+<p>具体地说，如果位置(x, y)落在任何GT框的中心区域，则认为它是正样本。以  为中心的框的中心区域定义为子框   ，其中s为当前feature maps的总步幅，r为COCO上的超参数为1.5。子框被剪切，使其不超出原始框。注意，这与本文最初的版本不同，先前本文认为位置只要位于ground-truth框中就是正的。除了用于分类的标签外，本文还有一个4D实向量  作为该位置的回归目标。这里  是该位置到包围框四面的距离，如图1(左)所示。如果一个位置落在多个边界框的中心区域，则认为该位置是一个模糊样本。文章先简单地选择面积最小的边界框作为回归目标。在下一节中，将展示通过多级预测可以显著减少模糊样本的数量，从而几乎不会影响检测性能。形式上，如果位置(x, y)与一个边界框  相关联，则该位置的训练回归目标可以表述为:</p>
+<p>其中s为特征映射到  之前的总步幅，用于缩小回归目标并防止训练过程中梯度爆炸。值得注意的是，这与基于锚的检测器不同，每个位置只有一个锚框，关键的区别在于定义正样本和负样本的方式。单锚检测器仍然使用预定义的锚框作为先验，并使用锚框和GT框之间的IoUs来确定这些锚框的标签。在FCOS中，消除了对先验的需要，并且通过在GT框中包含位置来标记位置。在实验中，将证明使用单一锚只能取得较差的性能。</p>
+<p><strong>网络输出。</strong>对应于训练目标，本文的网络的最后一层预测了一个80D向量p用于分类和一个4D向量t &#x3D; (l, t, r, b)编码边界框坐标。本文不再训练一个多类分类器，而是训练C个二分类器，在FPNs生成的feature map后，分别添加了两个分支，分别有四个卷积层(不包括最终的预测层)，分别用于分类和回归任务。此外，由于回归目标总是正的，本文使用ReLU(x)将任何实数映射到回归分支顶部的(0，∞)。值得注意的是，FCOS的网络输出变量比目前流行的基于锚点的检测器少9倍。 </p>
+<p><strong>损失函数。</strong>本文对训练损失函数的定义如下:</p>
+<p><img src="/2020/11/01/paper-5/image-4.png" alt="image-20220315204111876"></p>
+<p>其中  是focal loss，  为GIoU loss。实验表明，GIoU损失比FCOS的初步版本中使用的IoU损失有更好的性能。本文中，  表示正样本数，  为  的平衡权值.  是指示函数。</p>
+<p>推断。FCOS的推断很简单。给定一幅输入图像，通过网络传输，得到特征图Fi上每个位置的分类分数Px,y和回归预测Tx,y。在focal loss之后，选择Px,y&gt;0.05为正样本的位置，解算Eq.(1)得到预测的边界框。</p>
+<h2 id="多层FPN预测FCOS"><a href="#多层FPN预测FCOS" class="headerlink" title="多层FPN预测FCOS"></a>多层FPN预测FCOS</h2><p>首先，CNN中最终feature map的大stride(例如16倍)会导致较低的best possible recall (BPR)1。对于基于锚点的检测器，通过降低正锚框的IOU分数要求，可以在一定程度上补偿由于大跨度导致的召回率低。对于FCOS，乍一看，人们可能认为BPR可以比基于锚的检测器低得多，因为它不可能在一个大stride的时候，找出一个位置没有在特征图编码的目标。这里,经验表明,即使是一个大stride,FCOS还能够产生良好的BPR。此外，通过多层FPN预测，可以进一步改进BPR。</p>
+<p>其次，如图1(右)所示，groundtruth box中的重叠会导致歧义，即重叠回归中应该选择哪个边界框?这种模糊性导致性能下降。在这项工作中，本文证明了多层预测可以极大地解决模糊问题，并且FCOS可以获得与基于锚点的方法相同有时甚至更好的性能。</p>
+<p>具体来说，在FPN之后，本文在不同的feature map级别上检测不同大小的目标。使用了定义为{P3, P4, P5, P6, P7}的五个层次的特征图。如图2所示，P3、P4、P5是由主干CNN的特征图C3、C4、C5产生的。在P5和P6上分别应用一个步长为2的3×3的卷积层产生P6和P7。注意，这与最初的RetinaNet不同，后者从主干特征图C5中获取P6和P7。本文发现两种方案的性能相似，但本文使用的一种参数较少。此外，P3、P4、P5、P6和P7的stride分别是8、16、32、64和128。</p>
+<p>基于锚的检测器将不同尺度的锚框分配到不同的特征级别。由于锚框和真实框是通过它们的IoU分数相关联的，这使得不同的FPN特征级别能够处理不同比例的目标。但是，这将锚框的大小与每个FPN级别的目标目标的大小结合在一起，这是有问题的。锚框的大小应该是特定于数据的，可能会从一个数据集更改到另一个数据集。每个FPN级别的目标目标大小取决于FPN级别的感受野，感受野取决于网络架构。FCOS消除了耦合，因为只需要关注每个FPN级别的目标目标大小，而不需要设计锚框大小。与基于锚点的检测器不同，在FCOS中，本文直接限制了每一层的边界框回归的范围。更具体地说，本文首先计算回归目标  对于所有特征层的每个位置。接下来，如果在特征层i上的某个位置满足  或  ，那么它就被设为负样本，因此不再需要返回一个边界框。这里  是特征级别i需要返回的最大距离。本文将m2、m3、m4、m5、m6、m7分别设为0、64、128、256、512和∞。文章认为，限定最大距离是确定各特征层目标目标范围的较好方法，因为这样可以确保完整目标始终处于各特征层的接受域内。此外，由于不同大小的目标被分配到不同的特征级别，且重叠多发生在大小差别较大的目标之间，因此可以在很大程度上缓解上述模糊性。如果一个位置，即使使用多层预测，仍然分配给多个真实框，只需选择面积最小的真实框作为目标。实验结果表明，在多级预测的情况下，无锚检测器和基于锚的检测器都能达到相同的性能水平。</p>
+<p>最后，在不同特征层之间共享头，不仅提高了检测器的参数效率，而且提高了检测器的检测性能。但是，文章观察到不同的特征级别需要返回不同的尺寸范围(例如P3的尺寸范围为[0,64]，P4的尺寸范围为[64,128])，因此对于不同的特征级别使用相同的头部可能不是最佳设计。在FCOS初始版本中，通过将一个可学习的标量乘以卷积层的输出来解决这个问题。在这个版本中，由于回归目标是按FPN特征级别的stride来缩小的，如Eq.(1)所示，因此标量的重要性降低了。但是，为了兼容性，文章仍然保留它们</p>
+<h2 id="Center-ness-for-FCOS"><a href="#Center-ness-for-FCOS" class="headerlink" title="Center-ness for FCOS"></a>Center-ness for FCOS</h2><p><img src="/2020/11/01/paper-5/image-5.png" alt="image-20220315204144708"></p>
+<p>图4 中心度。红色，蓝色和其他颜色分别表示它们之间的1，0和中间值。中心度使用例如Eq.(3)计算，并且随着位置偏离目标中心而从1衰减到0。在测试期间，将网络预测的中心度与NMS的分类分数相乘，从而能够降低由远离目标中心的位置预测的低质量边界框的权重</p>
+<p>经过多级预测，FCOS已经可以取得比基于锚的RetinaNet更好的性能。此外，本文观察到有由于远离物体中心而产生的大量低质量的检测结果。本文提出了一个简单而有效的策略来抑制这些低质量的检测。具体来说，添加了一个单层分支，与回归分支并行(如图2所示)，以预测位置的“中心性”。中心度描述了该位置到该位置所负责目标中心的归一化距离，如图4所示。给定回归目标  对于一个位置，中心目标被定义为，</p>
+<p><img src="/2020/11/01/paper-5/image-6.png" alt="image-20220315204200972"></p>
+<p>这里用平方根来减缓中心度的衰减。中心度在0到1之间，因此使用二元交叉熵(BCE)损失进行训练。将损失加到损失函数式(2)中，检验时，最终得分s Sx,y(用于对NMS中检测进行排序)为预测的中心度Ox,y与对应的分类分数Px,y的乘积的平方根。在形式上，</p>
+<p><img src="/2020/11/01/paper-5/image-7.png" alt="image-20220315204213917"></p>
+<p>其中，sqrt用于校准最终分数的数量级，对平均精度(AP)没有影响。</p>
+<p>因此，中心度可以降低远离物体中心的边界框的分数。因此，在最终的非最大抑制(non-maximum suppression, NMS)过程中，这些低质量的边界框很有可能被滤掉，显著提高了检测性能。</p>
+<h1 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h1><p>本文的实验是在COCO上进行的。按照惯例使用COCO train2017 split (115K images)进行训练，val2017 split (5K images)作为消融研究的验证。</p>
+<p><strong>训练细节</strong>。本文使用ResNet-50作为主干网，使用与RetinaNet相同的超参数。具体来说，本文的网络使用随机梯度下降(SGD)训练90k迭代，初始学习率为0.01，并有16张小批图像。在迭代60k和80k时，学习率分别降低了10倍。设定权重衰减为0.0001，动量为0.9。本文用在ImageNet上预先训练的权重初始化主干网络。除非指定，否则输入图像将被调整大小，使其短边为800，长边小于或等于1333。</p>
+<p><strong>推断细节</strong>。首先通过网络将输入图像前向传播，得到预测的分类分数的预测边界框。FCOS的下一个后处理紧跟RetinaNet的后处理。后期处理超参数也是一样的，只是本文在RetinaNet中使用NMS阈值0.6而不是0.5。实验将显示NMS阈值的效果。此外，本文使用与训练时相同大小的输入图像。</p>
+<h2 id="FCOS分析"><a href="#FCOS分析" class="headerlink" title="FCOS分析"></a>FCOS分析</h2><h3 id="FCOS的最佳可能召回-BPR"><a href="#FCOS的最佳可能召回-BPR" class="headerlink" title="FCOS的最佳可能召回(BPR)"></a>FCOS的最佳可能召回(BPR)</h3><p><img src="/2020/11/01/paper-5/image-8.png" alt="image-20220315204227503"></p>
+<p>表1 在各种匹配规则下以及基于cocos val2017 split的FCOS的BPR时，基于锚的RetinaNet的最佳可能召回（BPR）</p>
+<p>本文首先要解决的问题是FCOS可能不能提供一个良好的最佳可能召回(BPR)(即召回率的上限)。在本节中，本文通过比较FCOS的BPR和基于锚的BPR来说明这种关注是不必要的。下面的分析是基于FCOS在AdelaiDet中的实现。在形式上，BPR被定义为检测器最多能召回的真值框的数量与所有真值框的数量之比。如果将真值框分配给至少一个训练样本(即FCOS中的一个位置或基于锚点的检测器中的一个锚框)，则认为真值框被召回，并且训练采样最多可以与一个真值框相关联。如表1所示，FPN、FCOS和RetinaNet均得到相似的BPR (98.95 vs 99.32)。由于目前检测器的最佳召回率远低于90%，FCOS与基于锚定的RetinaNet之间的小BPR差距(小于0.5%)实际上不会影响检测器的性能。表3也证实了这一点，在相同的训练和测试设置下，FCOS比RetinaNet获得更好或相似的AR。更令人惊讶的是，只有当feature level P4 (stride为16)时(即没有FPN)， FCOS才能获得96.34%的不错BPR。BPR远高于官方检测中91.94%的RetinaNet的BPR，其中仅使用IOU≥0.4的低质量匹配。因此，对低BPR的担忧可能没有必要</p>
+<h3 id="FCOS中的模糊样本"><a href="#FCOS中的模糊样本" class="headerlink" title="FCOS中的模糊样本"></a>FCOS中的模糊样本</h3><p>表2</p>
+<p><img src="/2020/11/01/paper-5/image-9.png" alt="image-20220315204245345"> </p>
+<p>基于FCN的检测器的另一个问题是，由于真值框的重叠，可能会有大量的模糊样本，如图1(右)所示。在表2中，本文给出了val2017 split上模糊样本与所有正样本的比率。如果一个位置应该与多个真实框相关联，而不使用选择面积最小的框的规则，则该位置被定义为“模糊样本”。从表中可以看出，如果不使用FPN(即只使用P4)，确实存在大量的模糊样本(23.40%)。而使用FPN，由于大部分重叠的目标被分配到不同的特征级别，所以该比例可以显著降低到7.42%。此外，如果采用中心采样，可以显著减少模糊样本。如表2所示，即使没有FPN、比值仅为3.48%。通过进一步应用FPN，该比例降至2.66%。注意，这并不是说FCOS有2.66%的位置会出错。如前所述，这些位置与与同一位置相关联的真值框中最小的一个相关联。因此，这些位置只承担丢失一些较大物体的风险。换句话说，它可能会损害FCOS的召回。但是，如表1所示，FCOS和RetinaNet之间的recall gap可以忽略不计，说明缺失物体的比例非常低。</p>
+<h3 id="中心效应"><a href="#中心效应" class="headerlink" title="中心效应"></a>中心效应</h3><p>表4</p>
+<p><img src="/2020/11/01/paper-5/image-10.png" alt="image-20220315204258989"></p>
+<p>如前所述，本文提出“中心度”来抑制远离物体中心的位置产生的低质量检测边界框。如表4所示，中心分支可以将AP从38.0%提高到38.9%。与本文的初版本相比，这个差距相对较小，因为我们默认使用了中心采样，而且它已经消除了大量的误报。然而，这种改进仍然令人印象深刻，因为中心分支只增加了微不足道的计算时间。此外，稍后将说明，在拥挤的情况下，中心性可以带来很大的改善。有人可能会注意到，中心也可以用预测的回归向量来计算，而不引入额外的中心分支。但是，如表4所示，由回归向量计算出的中心度并不能提高性能，因此需要单独的中心度。</p>
+<p>本文在图4中可视化应用中心度的效果。从图中可以看出，将中心度分值应用于分类分值后，IoU分值较低但置信分值较高的框(即图4中y &#x3D; x线下的点)被大量剔除，存在潜在的误报。</p>
+<h3 id="其他的设计选择"><a href="#其他的设计选择" class="headerlink" title="其他的设计选择"></a>其他的设计选择</h3><p>表5</p>
+<p><img src="/2020/11/01/paper-5/image-11.png" alt="image-20220315204327967"></p>
+<p>其他的设计选择也被研究。如表5所示，在分类头和回归头中去除组标准化(GN)都会使性能下降1%。用IoU损失代替GIoU，性能下降0.3%。使用C5而不是P5也会降低性能。此外，使用P5可以减少网络参数的数量。本文还对正样本区域的半径r进行了实验。由表6可知，r &#x3D; 1.5对COCO val split的性能最好。本文还尝试将采样区域从正方形子框改为与GT框具有相同长宽比的矩形子框，从而获得相似的性能。这表明，采样区域的形状可能对最终性能不敏感。</p>
+<p>表6</p>
+<p><img src="/2020/11/01/paper-5/image-12.png" alt="image-20220315204340621"></p>
+<p>本文还对FPN级别分配目标的不同策略进行了实验。首先，本文实验了FPN将目标proposal(即ROIs)分配给FPN级别时的分配策略。根据公式  分配目标，其中k∈{3,4,5,6,7}为目标FPN层，w和h分别为地真框的宽度和高度，  为尺度为224的目标要映射到的目标层。本文用  &#x3D; 5。如表7所示，该策略导致性能下降(37.7% AP)。文章推测这可能是由于该策略不能确保完整的目标处于目标FPN水平的接受域内。</p>
+<p>表7</p>
+<p><img src="/2020/11/01/paper-5/image-13.png" alt="image-20220315204359153"></p>
+<p>同样，  和  也会影响性能。最终，  实现了最好的性能，因为该策略确保了完整的目标目标始终处于有效状态FPN水平的感受野。这意味着每个FPN级别(即mi)的范围超参数主要与网络架构(决定接受域)有关。</p>
+<h2 id="FCOS与基于锚的检测器对比"><a href="#FCOS与基于锚的检测器对比" class="headerlink" title="FCOS与基于锚的检测器对比"></a>FCOS与基于锚的检测器对比</h2><p>本文将FCOS与基于锚的RetinaNet在基准COCO上进行了比较，证明了更简单的无锚FCOS的优越性。</p>
+<p>表3 FCOS vs. RetinaNet</p>
+<p><img src="/2020/11/01/paper-5/image-14.png" alt="image-20220315204414003"></p>
+<h2 id="与COCO上最先进的检测器相比"><a href="#与COCO上最先进的检测器相比" class="headerlink" title="与COCO上最先进的检测器相比"></a>与COCO上最先进的检测器相比</h2><p>本文将FCOS与其他最先进的目标检测器进行了比较，结果如表8所示。</p>
+<p>表8 FCOS与其他最先进的两阶段或单阶段探测器比较。FCOS的性能远远超过了最近的一些基于锚的和无锚的探测器。</p>
+<p><img src="/2020/11/01/paper-5/image-15.png" alt="image-20220315204428790"></p>
+<h1 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h1><p>本文提出了一种无anchor和无proposal的单阶段检测器FCOS。实验表明，FCOS比基于锚的单阶段检测器(包括RetinaNet、YOLO和SSD)更优且设计复杂度低得多。FCOS避免了与锚框相关的计算和超参数，以逐像素预测的方式解决了目标检测问题。FCOS在单阶段检测器中也达到了最先进的性能。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    dongzuoyk
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://dongzuoyk.github.io/2020/11/01/paper-5/" title="FCOS:一种简单而强大的无锚目标检测器">https://dongzuoyk.github.io/2020/11/01/paper-5/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B/" rel="tag"># 目标检测</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/09/26/paper-1/" rel="next" title="神经架构搜索：综述">
+                <i class="fa fa-chevron-left"></i> 神经架构搜索：综述
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/12/01/paper-2/" rel="prev" title="UNET3+:一种用于医学图像分割的全尺寸连接UNET">
+                UNET3+:一种用于医学图像分割的全尺寸连接UNET <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="" />
+            
+              <p class="site-author-name" itemprop="name"></p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives%7C%7C%20archive">
+              
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">6</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/dongzuoyk" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:bryan97@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BC%95%E8%A8%80"><span class="nav-number">1.</span> <span class="nav-text">引言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%96%B9%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">方法</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E5%8D%B7%E7%A7%AF%E5%8D%95%E7%BA%A7%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%99%A8"><span class="nav-number">2.1.</span> <span class="nav-text">全卷积单级目标检测器</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%B1%82FPN%E9%A2%84%E6%B5%8BFCOS"><span class="nav-number">2.2.</span> <span class="nav-text">多层FPN预测FCOS</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Center-ness-for-FCOS"><span class="nav-number">2.3.</span> <span class="nav-text">Center-ness for FCOS</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%9E%E9%AA%8C"><span class="nav-number">3.</span> <span class="nav-text">实验</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#FCOS%E5%88%86%E6%9E%90"><span class="nav-number">3.1.</span> <span class="nav-text">FCOS分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#FCOS%E7%9A%84%E6%9C%80%E4%BD%B3%E5%8F%AF%E8%83%BD%E5%8F%AC%E5%9B%9E-BPR"><span class="nav-number">3.1.1.</span> <span class="nav-text">FCOS的最佳可能召回(BPR)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#FCOS%E4%B8%AD%E7%9A%84%E6%A8%A1%E7%B3%8A%E6%A0%B7%E6%9C%AC"><span class="nav-number">3.1.2.</span> <span class="nav-text">FCOS中的模糊样本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AD%E5%BF%83%E6%95%88%E5%BA%94"><span class="nav-number">3.1.3.</span> <span class="nav-text">中心效应</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B6%E4%BB%96%E7%9A%84%E8%AE%BE%E8%AE%A1%E9%80%89%E6%8B%A9"><span class="nav-number">3.1.4.</span> <span class="nav-text">其他的设计选择</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#FCOS%E4%B8%8E%E5%9F%BA%E4%BA%8E%E9%94%9A%E7%9A%84%E6%A3%80%E6%B5%8B%E5%99%A8%E5%AF%B9%E6%AF%94"><span class="nav-number">3.2.</span> <span class="nav-text">FCOS与基于锚的检测器对比</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8ECOCO%E4%B8%8A%E6%9C%80%E5%85%88%E8%BF%9B%E7%9A%84%E6%A3%80%E6%B5%8B%E5%99%A8%E7%9B%B8%E6%AF%94"><span class="nav-number">3.3.</span> <span class="nav-text">与COCO上最先进的检测器相比</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BB%93%E8%AE%BA"><span class="nav-number">4.</span> <span class="nav-text">结论</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+        <div class="back-to-top">
+          <i class="fa fa-arrow-up"></i>
+          
+            <span id="scrollpercent"><span>0</span>%</span>
+          
+        </div>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">dongzuoyk</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

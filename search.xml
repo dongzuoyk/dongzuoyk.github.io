@@ -340,4 +340,31 @@
         <tag>目标检测</tag>
       </tags>
   </entry>
+  <entry>
+    <title>常用注解浅析</title>
+    <url>/2022/03/23/community-1/</url>
+    <content><![CDATA[<h1 id="Component-x2F-Bean-x2F-Autowired"><a href="#Component-x2F-Bean-x2F-Autowired" class="headerlink" title="@Component&#x2F;@Bean&#x2F;@Autowired"></a>@Component&#x2F;@Bean&#x2F;@Autowired</h1><p><code>@Component</code>（<code>@Controller</code>、<code>@Service</code>、<code>@Repository</code>）:自动创建一个实例并装配到Spring容器中(放到IOC中)</p>
+<p><code>@Bean</code> :手动创建一个实例，并保留在IOC中。<br><code>@Bean</code>的好处：麻烦一点，但自定义性更强。当引用第三方库中的类需要装配到Spring容器时，则只能通过<code>@Bean</code>来实现（因为你并不能改他的源代码在他类上加个<code>@Componen</code>。<br><code>@Bean</code>注解在返回实例的方法上。</p>
+<p><code>@Autowired</code>: 织入（Spring上下文已有实例（已注入IOC），<code>@Autowired</code>只是取一下）一般注解在属性上。</p>
+<span id="more"></span>
+
+<h1 id="RequestMapping-x2F-GetMapping-x2F-PostMapping"><a href="#RequestMapping-x2F-GetMapping-x2F-PostMapping" class="headerlink" title="@RequestMapping  &#x2F;  @GetMapping &#x2F;@PostMapping"></a>@RequestMapping  &#x2F;  @GetMapping &#x2F;@PostMapping</h1><p><code>@GetMapping</code>是一个组合注解，是<code>@RequestMapping</code>(method &#x3D; RequestMethod.GET)的缩写。</p>
+<p>@PostMapping是一个组合注解，是<code>@RequestMapping</code>(method &#x3D; RequestMethod.POST)的缩写。</p>
+<h1 id="RequestMapping-注解的path和value有什么区别"><a href="#RequestMapping-注解的path和value有什么区别" class="headerlink" title="@RequestMapping 注解的path和value有什么区别?"></a>@RequestMapping 注解的path和value有什么区别?</h1><p>从源码可以看出value和path是相互引用的，所以说——没区别。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">//从源码可以看出value和path是相互引用的，所以说没区别。</span></span><br><span class="line"><span class="keyword">public</span> <span class="meta">@interface</span> RequestMapping &#123;</span><br><span class="line">    String <span class="title function_">name</span><span class="params">()</span> <span class="keyword">default</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@AliasFor(&quot;path&quot;)</span></span><br><span class="line">    String[] value() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@AliasFor(&quot;value&quot;)</span></span><br><span class="line">    String[] path() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    RequestMethod[] method() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    String[] params() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    String[] headers() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    String[] consumes() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line"></span><br><span class="line">    String[] produces() <span class="keyword">default</span> &#123;&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Mapper和-Repository的区别"><a href="#Mapper和-Repository的区别" class="headerlink" title="@Mapper和@Repository的区别"></a><code>@Mapper</code>和<code>@Repository</code>的区别</h1><h2 id="相同点"><a href="#相同点" class="headerlink" title="相同点"></a>相同点</h2><p><code>@Mapper</code>和<code>@Repository</code>都是作用在dao层接口，使得其生成代理对象bean，交给spring容器管理</p>
+<h2 id="不同点"><a href="#不同点" class="headerlink" title="不同点"></a>不同点</h2><p>使用<code>@mapper</code>后，不需要在spring配置中设置扫描地址，通过mapper.xml里面的namespace属性对应相关的mapper类，spring将动态的生成Bean后注入到ServiceImpl中。</p>
+<p><code>@repository</code>不可以单独使用,需要在Spring中配置扫描包地址，然后生成dao层的bean，之后被注入到ServiceImpl中</p>
+]]></content>
+      <categories>
+        <category>Spring全家桶</category>
+      </categories>
+      <tags>
+        <tag>Spring</tag>
+        <tag>注解</tag>
+      </tags>
+  </entry>
 </search>
